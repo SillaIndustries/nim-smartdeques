@@ -4,7 +4,6 @@ import options
 import strformat
 import os
 import serialization
-import std/algorithm
 import strutils
 import std/jsonutils
 import std/[strtabs,json]
@@ -68,7 +67,8 @@ proc loadFromStorage[T](p: var SmartDeques[T]) =
             continue
         var elem: T
         fromJson(elem, parseJson(line))
-        p.queue.addLast(elem)
+        if not p.isFull:
+            p.queue.addLast(elem)
 
 proc clear*(p: var SmartDeques) =
     p.queue.clear()
@@ -76,14 +76,16 @@ proc clear*(p: var SmartDeques) =
     # if p.enableStorage:
         # p.initStorage()
     
-proc newSmartDeque*[T](maxSize: uint = MAX_LENGTH, dirPathStorage: Option[string] = none(string)): SmartDeques[T] =
+proc newSmartDeque*[T](maxSize: uint = MAX_LENGTH, dirPathStorage: string = ""): SmartDeques[T] =
     var p: SmartDeques[T]
-    p.maxSize = (int)maxSize
+    p.maxSize = MAX_LENGTH
+    if maxSize > 0:
+        p.maxSize = (int)maxSize
     p.queue = initDeque[T](p.maxSize)
     p.sdLock.initLock()
     p.dirPathFile = DEFAULT_PATH & STORAGE_FILENAME
-    if dirPathStorage.isSome:
-        p.dirPathFile = dirPathStorage.get()
+    if not dirPathStorage.isEmptyOrWhitespace:
+        p.dirPathFile = dirPathStorage
     return p
 
 proc initStorage*(p: var SmartDeques) =
@@ -96,9 +98,12 @@ proc pop*[T](p: var SmartDeques[T]): Option[T] {.gcsafe.} =
     if not hasLockAcquired:
         result = none(T)
     elif p.hasElement:
-        result = some(p.queue.popLast())
-        if p.enableStorage:
-            p.removeLastRecord()
+        try:
+            result = some(p.queue.popLast())
+            if p.enableStorage:
+                p.removeLastRecord()
+        except RangeDefect: # manage timing when thread has not sleep
+            result = none(T)
     else:
         result = none(T)
     p.sdLock.release()
@@ -123,3 +128,6 @@ proc `$`*(p: var SmartDeques): string =
     for el in p.queue.items:
         coll.add($el.toJson)
     return $coll
+
+proc maxSize(p: var SmartDeques): int =
+    return p.maxSize

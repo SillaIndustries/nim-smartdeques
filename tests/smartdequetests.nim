@@ -1,7 +1,7 @@
 import unittest
 import options
 import os
-import ../src/concretesmartdequeues
+import ../src/concretesmartdeques
 import strutils
 
 const fileStorage = "/tmp/.smarttests"
@@ -22,11 +22,21 @@ const mockRes1 = ["""{"pk":10,"name":"silla10","height":23.2}""","""{"pk":11,"na
 suite "Smart deques tests":
 
     test "Initialization":
-        var p = newSmartDeque[MockClass](100, some(fileStorage))
+        var p = newSmartDeque[MockClass](1, fileStorage)
+        p.clear()
+        p.initStorage()
         check p.len == 0
+        p.push(m)
+        var p1 = newSmartDeque[MockClass](1, fileStorage)
+        p1.initStorage()
+        check p1.len == 1
+        var p2 = newSmartDeque[MockClass](0, fileStorage)
+        p2.initStorage()
+        
+
     
     test "Push element and pop":
-        var p = newSmartDeque[MockClass](100, some(fileStorage))
+        var p = newSmartDeque[MockClass](100, fileStorage)
         p.clear()
         p.initStorage()
         p.push(m)
@@ -42,16 +52,17 @@ suite "Smart deques tests":
         check splitLines.len == 0
     
     test "Nilpotence property":
-        var p = newSmartDeque[MockClass](100, some(fileStorage))
+        var p = newSmartDeque[MockClass](1, fileStorage)
         p.clear()
         p.initStorage()
         p.push(m)
         p.push(p.pop().get())
         let res = p.pop()
         check res.get().name == m.name
+        check p.isEmpty == true
 
     test "Full queue case":
-        var p = newSmartDeque[MockClass](2, some(fileStorage))
+        var p = newSmartDeque[MockClass](2, fileStorage)
         p.clear()
         p.initStorage()
         p.push(m)
@@ -65,7 +76,7 @@ suite "Smart deques tests":
         check splitLines.len == p.len
     
     test "Empty case":
-        var p = newSmartDeque[MockClass](2, some(fileStorage))
+        var p = newSmartDeque[MockClass](2, fileStorage)
         p.clear()
         p.initStorage()
         let res = p.pop()
@@ -75,13 +86,13 @@ suite "Smart deques tests":
         check splitLines.len == 0
     
     test "Deserialize and load storage":
-        var p = newSmartDeque[MockClass](3, some(fileStorage))
+        var p = newSmartDeque[MockClass](3, fileStorage)
         p.clear()
         p.initStorage()
         p.push(m)
         p.push(m1)
         p.push(m2)
-        var p1 = newSmartDeque[MockClass](3, some(fileStorage))
+        var p1 = newSmartDeque[MockClass](3, fileStorage)
         p1.initStorage()
         # check p1.isFull
         let mo1 = p.pop()
