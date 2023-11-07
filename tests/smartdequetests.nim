@@ -1,7 +1,7 @@
 import unittest
 import options
 import os
-import ../src/concretesmartdeques
+import ../src/smartdeques/concretesmartdeques
 import strutils
 
 const fileStorage = "/tmp/.smarttests"
@@ -32,7 +32,7 @@ suite "Smart deques tests":
         check p1.len == 1
         var p2 = newSmartDeque[MockClass](0, fileStorage)
         p2.initStorage()
-        
+
 
     
     test "Push element and pop":

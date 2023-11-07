@@ -3,6 +3,4 @@ tests/resources/smartdequesmock
 
 tests/smartdequetests
 
-smartdeques
-
 tests/smartdequesthreadstests

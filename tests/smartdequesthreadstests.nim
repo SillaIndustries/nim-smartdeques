@@ -1,4 +1,4 @@
-import ../src/concretesmartdeques
+import ../src/smartdeques/concretesmartdeques
 import strformat
 import std/[os]
 import options
