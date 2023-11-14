@@ -13,7 +13,7 @@ const STORAGE_FILENAME = ".smartdeques"
 const DEFAULT_PATH = "/tmp/"
 
 type SmartDeques*[T] = object
-    sdLock: Lock
+    # sdLock: Lock
     queue: Deque[T]
     maxSize: int
     enableStorage: bool
@@ -48,15 +48,15 @@ proc appendRecord(p: SmartDeques, line: string) =
     f.writeLine(line)
 
 proc push*[T](p: var SmartDeques[T], o: T): Option[T] {.gcsafe, discardable.} =
-    let hasLockAcquired = p.sdLock.tryAcquire()
-    if not hasLockAcquired or p.queue.len >= p.maxSize:
+    # let hasLockAcquired = p.sdLock.tryAcquire()
+    if p.queue.len >= p.maxSize:
         result = none(T)
     else:
         p.queue.addFirst(o)
         result = some(o)
         if p.enableStorage:
             p.appendRecord($o.toJson)
-    p.sdLock.release()
+    # p.sdLock.release()
 
 proc loadFromStorage[T](p: var SmartDeques[T]) =
     if not fileExists(p.dirPathFile):
@@ -82,7 +82,7 @@ proc newSmartDeque*[T](maxSize: uint = MAX_LENGTH, dirPathStorage: string = ""):
     if maxSize > 0:
         p.maxSize = (int)maxSize
     p.queue = initDeque[T](p.maxSize)
-    p.sdLock.initLock()
+    # p.sdLock.initLock()
     p.dirPathFile = DEFAULT_PATH & STORAGE_FILENAME
     if not dirPathStorage.isEmptyOrWhitespace:
         p.dirPathFile = dirPathStorage
@@ -94,10 +94,10 @@ proc initStorage*(p: var SmartDeques) =
     p.loadFromStorage()
 
 proc pop*[T](p: var SmartDeques[T]): Option[T] {.gcsafe.} =
-    let hasLockAcquired = p.sdLock.tryAcquire()
-    if not hasLockAcquired:
-        result = none(T)
-    elif p.hasElement:
+    # let hasLockAcquired = p.sdLock.tryAcquire()
+    # if not hasLockAcquired:
+        # result = none(T)
+    if p.hasElement:
         try:
             result = some(p.queue.popLast())
             if p.enableStorage:
@@ -106,7 +106,7 @@ proc pop*[T](p: var SmartDeques[T]): Option[T] {.gcsafe.} =
             result = none(T)
     else:
         result = none(T)
-    p.sdLock.release()
+    # p.sdLock.release()
 
 proc hasElement*(p: var SmartDeques): bool {.gcsafe.} =
     return p.queue.len > 0
